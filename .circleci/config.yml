@@ -3,8 +3,7 @@ version: 2.1
 jobs:
   push-master:
     docker:
-      - image
-      image: circleci/classic:latest
+      - image: circleci/classic:latest
     steps:
       - run:
           name: Hello World
