@@ -3,7 +3,7 @@ version: 2.1
 jobs:
   push-master:
     docker:
-      - image: circleci/classic:latest
+      - image: alpine:3.7
     steps:
       - run:
           name: Hello World
@@ -14,7 +14,7 @@ jobs:
 
   push-qa:
     docker:
-      - image: circleci/classic:latest
+      - image: alpine:3.7
     steps:
       - checkout
       - run:
