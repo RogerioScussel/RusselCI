@@ -11,7 +11,6 @@ jobs:
             echo 'Hello World!'
             echo 'This is the delivery pipeline'
             echo 'Circleci'
-
   push-qa:
     docker:
       - image: alpine:3.7
@@ -22,16 +21,14 @@ jobs:
           command: |
             ls -al
             echo '^^^That should look familiar^^^'
-
   push-tag:
     docker:
-      - image: circleci/classic:latest
+      - image: alpine:3.7
     steps:
       - run:
           name: Tag e Execute Processos
           command: |
             echo 'TAGS RUNNING ....'
-
 
 workflows:
   version: 2
