@@ -1,20 +1,57 @@
+# CircleCI 2.0 Configuration File
 version: 2.1
 jobs:
-  build:
+  push-master:
     docker:
       - image: alpine:3.7
     steps:
       - run:
-          name: The First Step
+          name: Hello World
           command: |
             echo 'Hello World!'
             echo 'This is the delivery pipeline'
-#      - run:
-#          name: Code Has Arrived
-#          command: |
-#            ls -al
-#            echo '^^^That should look familiar^^^'
-#      - run:
-#          name: Running in a Unique Container
-#          command: |
-#            node -v
+            echo 'Circleci'
+
+  push-qa:
+    docker:
+      - image: alpine:3.7
+    steps:
+      - checkout
+      - run:
+          name: Code Has Arrived
+          command: |
+            ls -al
+            echo '^^^That should look familiar^^^'
+
+  push-tag:
+    docker:
+      - image: circleci/classic:latest
+    steps:
+      - run:
+          name: Tag e Execute Processos
+          command: |
+            echo 'TAGS RUNNING ....'
+
+
+workflows:
+  version: 2
+  push-deploy:
+    jobs:
+      - push-master:
+          filters:
+            branches:
+              only: master
+      - push-qa:
+          filters:
+            branches:
+              ignore:
+                - master
+
+  push-tag:
+    jobs:
+      - push-tag:
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^v[0-9]+(\.[0-9]+)+(-\D+)*/
