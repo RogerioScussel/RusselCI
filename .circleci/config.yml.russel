@@ -1,0 +1,88 @@
+# CircleCI 2.0 Configuration File
+version: 2
+jobs:
+  push-master:
+    machine:
+      image: circleci/classic:latest
+    steps:
+      - checkout
+      - run:
+          name: Deploy to K8S Prod - Opening CircleCI Tunnel
+          command: make open_tunnel
+      - run:
+          name: Deploy to K8S Prod - Running make to execute Jenkins process to deploy to kubernetes
+          command: make VERSION=latest deploy_prod/k8s
+
+  push-qa:
+    machine:
+      image: circleci/classic:latest
+    steps:
+      - checkout
+      - run:
+          name: Deploy to K8S Prod - Opening CircleCI Tunnel
+          command: make open_tunnel
+      - run:
+          name: Deploy to K8S QA - Building image
+          command: TAG=qa make docker_login docker_build docker_push
+      - run:
+          name: Deploy to K8S QA - Running make to execute Jenkins process to deploy to kubernetes
+          command: make deploy_qa/k8s
+  push-tag:
+    machine:
+      image: circleci/classic:latest
+    steps:
+      - checkout
+      - run:
+          name: Openning CircleCI Tunnel
+          command: make open_tunnel
+      - run:
+          name: Docker push tag image
+          command: TAG=${CIRCLE_TAG} make docker_login docker_build docker_push
+      - run:
+          name: Deploy to K8S Prod - Running make to execute Jenkins process to deploy to kubernetes
+          command: make VERSION=${CIRCLE_TAG} deploy_prod/k8s
+  build-test:
+    machine:
+      image: circleci/classic:latest
+    steps:
+      - checkout
+      - run:
+          name: Openning CircleCI Tunnel
+          command: make open_tunnel
+      - run:
+          name: Docker build test
+          command: TAG=temp make docker_login docker_build
+
+workflows:
+  version: 2
+  build-test:
+    jobs:
+    - build-test:
+        context: build-context
+        filters:
+          branches:
+            ignore:
+              - master
+              - qa
+
+  push-deploy:
+    jobs:
+      - push-master:
+          context: build-context
+          filters:
+            branches:
+              only: master
+      - push-qa:
+          context: build-context
+          filters:
+            branches:
+              only: qa
+  push-tag:
+    jobs:
+      - push-tag:
+          context: build-context
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^v[0-9]+(\.[0-9]+)+(-\D+)*/
