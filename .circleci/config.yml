@@ -1,17 +1,21 @@
+# CircleCI 2.0 Configuration File
 version: 2.1
 jobs:
-  Hello-World:
+  push-master:
     docker:
-      - image: alpine:3.7
+      - image
+      image: circleci/classic:latest
     steps:
       - run:
           name: Hello World
           command: |
             echo 'Hello World!'
             echo 'This is the delivery pipeline'
-  I-Have-Code:
+            echo 'Circleci'
+
+  push-qa:
     docker:
-      - image: alpine:3.7
+      - image: circleci/classic:latest
     steps:
       - checkout
       - run:
@@ -19,39 +23,36 @@ jobs:
           command: |
             ls -al
             echo '^^^That should look familiar^^^'
-  Run-With-Node:
+
+  push-tag:
     docker:
-      - image: circleci/node:10-browsers
+      - image: circleci/classic:latest
     steps:
       - run:
-          name: Running In A Container With Node
+          name: Tag e Execute Processos
           command: |
-            node -v
-  Now-Complete:
-    docker:
-      - image: alpine:3.7
-    steps:
-      - run:
-          name: Approval Complete
-          command: |
-            echo 'Do work once the approval has completed'
+            echo 'TAGS RUNNING ....'
+
 
 workflows:
- version: 2
- Example_Workflow:
-   jobs:
-     - Hello-World
-     - I-Have-Code:
-         requires:
-           - Hello-World
-     - Run-With-Node:
-         requires:
-           - Hello-World
-     - Hold-For-Approval:
-         type: approval
-         requires:
-           - Run-With-Node
-           - I-Have-Code
-     - Now-Complete:
-         requires:
-           - Hold-For-Approval
+  version: 2
+  push-deploy:
+    jobs:
+      - push-master:
+          filters:
+            branches:
+              only: master
+      - push-qa:
+          filters:
+            branches:
+              ignore:
+                - master
+
+  push-tag:
+    jobs:
+      - push-tag:
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^v[0-9]+(\.[0-9]+)+(-\D+)*/
